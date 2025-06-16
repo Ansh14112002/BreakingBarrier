@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Happy Sound Puzzles</title>
+    <style>
+      body {
+        font-family: "Comic Sans MS", cursive, sans-serif;
+        background-color: #f0f9ff;
+        margin: 0;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      body.dark-mode {
+        background-color: #1a1a2e;
+        color: #e6e6e6;
+      }
+
+      body.dark-mode .game-container {
+        background-color: #2a2a3e;
+        color: #e6e6e6;
+      }
+
+      body.dark-mode .sound-tile {
+        background-color: #3a506b;
+        border-color: #4d7ea8;
+        color: #fff;
+      }
+
+      h1 {
+        color: #5e60ce;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        margin-bottom: 10px;
+      }
+
+      .description {
+        color: #4a4e69;
+        text-align: center;
+        max-width: 600px;
+        margin-bottom: 20px;
+      }
+
+      body.dark-mode .description {
+        color: #b8b8d1;
+      }
+
+      .game-container {
+        background-color: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 800px;
+        margin-bottom: 20px;
+      }
+
+      .puzzle-board {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-bottom: 25px;
+      }
+
+      .sound-tile {
+        background-color: #80ffdb;
+        border: 3px solid #64dfdf;
+        border-radius: 15px;
+        height: 100px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s;
+        font-size: 40px;
+      }
+
+      .sound-tile:hover {
+        background-color: #64dfdf;
+        transform: scale(1.05);
+      }
+
+      .sound-tile:active {
+        transform: scale(0.95);
+      }
+
+      .sound-tile.matched {
+        background-color: #06d6a0;
+        border-color: #048a64;
+        cursor: default;
+      }
+
+      .sound-tile.selected {
+        background-color: #ffd166;
+        border-color: #ffb347;
+        transform: scale(1.05);
+      }
+
+      .controls {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .control-btn {
+        background-color: #4cc9f0;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .control-btn:hover {
+        background-color: #3aa8cc;
+        transform: translateY(-3px);
+      }
+
+      .control-btn:active {
+        transform: translateY(0);
+      }
+
+      .feedback {
+        font-size: 24px;
+        font-weight: bold;
+        text-align: center;
+        min-height: 40px;
+        margin: 15px 0;
+        color: #5e60ce;
+      }
+
+      .progress-container {
+        width: 100%;
+        background-color: #e0e0e0;
+        border-radius: 10px;
+        margin: 15px 0;
+        height: 20px;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #4cc9f0, #4361ee);
+        border-radius: 10px;
+        width: 0%;
+        transition: width 0.5s;
+      }
+
+      .sensory-panel {
+        display: flex;
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .sensory-btn {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: #bdb2ff;
+        border: none;
+        font-size: 24px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+      }
+
+      .sensory-btn:hover {
+        background-color: #9381ff;
+        transform: rotate(15deg);
+      }
+
+      .celebration {
+        font-size: 60px;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 100;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 0.5s;
+      }
+
+      .confetti {
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        background-color: #f00;
+        border-radius: 50%;
+        pointer-events: none;
+        z-index: 90;
+        animation: fall 3s linear forwards;
+      }
+
+      @keyframes fall {
+        to {
+          transform: translateY(100vh) rotate(360deg);
+          opacity: 0;
+        }
+      }
+
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-20px);
+        }
+      }
+
+      .volume-control {
+        margin-top: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .tile-image {
+        width: 60px;
+        height: 60px;
+        object-fit: contain;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🎵 Happy Sound Puzzles 🎶</h1>
+    <p class="description">
+      Match the sounds to win! Click on two tiles to find pairs that make the
+      same sound.
+    </p>
+
+    <div class="sensory-panel">
+      <button class="sensory-btn" onclick="playCalmingMusic()">🎵</button>
+      <button class="sensory-btn" onclick="changeBackground()">🎨</button>
+      <button class="sensory-btn" onclick="toggleDarkMode()">🌙</button>
+      <button class="sensory-btn" onclick="showEncouragement()">💖</button>
+    </div>
+
+    <div class="game-container">
+      <div class="controls">
+        <button class="control-btn" onclick="startGame()">New Game</button>
+        <button class="control-btn" onclick="showHelp()">Help</button>
+      </div>
+
+      <div class="progress-container">
+        <div class="progress-bar" id="progress"></div>
+      </div>
+
+      <div class="feedback" id="feedback">Click "New Game" to start!</div>
+
+      <div class="puzzle-board" id="puzzle-board"></div>
+
+      <div class="volume-control">
+        <span>🔈</span>
+        <input
+          type="range"
+          id="volume"
+          min="0"
+          max="1"
+          step="0.1"
+          value="0.7"
+        />
+        <span>🔊</span>
+      </div>
+    </div>
+
+    <div class="celebration" id="celebration"></div>
+
+    <!-- Audio elements for game sounds -->
+    <!-- Animal Sounds -->
+    <audio
+      id="animal1"
+      src="{{ url_for('static', filename='sounds/animal1.mp3') }}"
+    ></audio>
+    <audio
+      id="animal2"
+      src="{{ url_for('static', filename='sounds/animal2.mp3') }}"
+    ></audio>
+    <audio
+      id="animal3"
+      src="{{ url_for('static', filename='sounds/animal3.mp3') }}"
+    ></audio>
+    <audio
+      id="animal4"
+      src="{{ url_for('static', filename='sounds/animal4.mp3') }}"
+    ></audio>
+
+    <!-- Instrumental Sounds -->
+    <audio
+      id="instrument1"
+      src="{{ url_for('static', filename='sounds/instrument1.mp3') }}"
+    ></audio>
+    <audio
+      id="instrument2"
+      src="{{ url_for('static', filename='sounds/instrument2.mp3') }}"
+    ></audio>
+    <audio
+      id="instrument3"
+      src="{{ url_for('static', filename='sounds/instrument3.mp3') }}"
+    ></audio>
+    <audio
+      id="instrument4"
+      src="{{ url_for('static', filename='sounds/instrument4.mp3') }}"
+    ></audio>
+
+    <!-- Nature Sounds -->
+    <audio
+      id="nature1"
+      src="{{ url_for('static', filename='sounds/nature1.mp3') }}"
+    ></audio>
+    <audio
+      id="nature2"
+      src="{{ url_for('static', filename='sounds/nature2.mp3') }}"
+    ></audio>
+    <audio
+      id="nature3"
+      src="{{ url_for('static', filename='sounds/nature3.mp3') }}"
+    ></audio>
+    <audio
+      id="nature4"
+      src="{{ url_for('static', filename='sounds/nature4.mp3') }}"
+    ></audio>
+
+    <!-- Feedback Sounds -->
+    <audio
+      id="success-sound"
+      src="{{ url_for('static', filename='sounds/success-sound.mp3') }}"
+    ></audio>
+    <audio
+      id="match-sound"
+      src="{{ url_for('static', filename='sounds/correct.mp3') }}"
+    ></audio>
+    <audio
+      id="error-sound"
+      src="{{ url_for('static', filename='sounds/wrong.mp3') }}"
+    ></audio>
+
+    <!-- Calm Background Music -->
+    <audio
+      id="calm-music"
+      src="{{ url_for('static', filename='sounds/calm-music.mp3') }}"
+      loop
+    ></audio>
+
+    <script>
+      // Game variables
+      let tiles = [];
+      let selectedTiles = [];
+      let matchedPairs = 0;
+      let totalPairs = 8;
+      let gameActive = false;
+      let soundCategories = ["animals", "instruments", "nature"];
+      let currentCategory = "";
+
+      // DOM elements
+      const puzzleBoard = document.getElementById("puzzle-board");
+      const feedbackElement = document.getElementById("feedback");
+      const progressBar = document.getElementById("progress");
+      const celebrationElement = document.getElementById("celebration");
+      const volumeControl = document.getElementById("volume");
+
+      // Image options for tiles
+      const tileImages = {
+        animals: ["🐶", "🐱", "🐭", "🐹", "🐰", "🦊", "🐻", "🐼"],
+        instruments: ["🎹", "🎷", "🎺", "🎻", "🪕", "🥁", "🎸", "🪈"],
+        nature: ["🌳", "🌻", "🌊", "☀️", "🌙", "⭐", "☁️", "❄️"],
+      };
+
+      // Initialize game
+      function startGame() {
+        // Reset game state
+        tiles = [];
+        selectedTiles = [];
+        matchedPairs = 0;
+        gameActive = true;
+        puzzleBoard.innerHTML = "";
+        feedbackElement.textContent = "Find matching sounds!";
+        progressBar.style.width = "0%";
+
+        // Select a random sound category
+        currentCategory =
+          soundCategories[Math.floor(Math.random() * soundCategories.length)];
+        feedbackElement.textContent = `Category: ${
+          currentCategory.charAt(0).toUpperCase() + currentCategory.slice(1)
+        } Sounds`;
+
+        // Create pairs of sounds (4 unique sounds, each appearing twice)
+        let soundPairs = [];
+        for (let i = 1; i <= 4; i++) {
+          soundPairs.push(`sound${i}`);
+          soundPairs.push(`sound${i}`);
+        }
+
+        // Duplicate to make 8 pairs (16 tiles)
+        soundPairs = soundPairs.concat(soundPairs);
+
+        // Shuffle the sounds
+        soundPairs = shuffleArray(soundPairs);
+
+        // Create tiles
+        soundPairs.forEach((soundId, index) => {
+          const tile = document.createElement("div");
+          tile.className = "sound-tile";
+          tile.dataset.sound = soundId;
+          tile.dataset.index = index;
+
+          // Add appropriate image based on category
+          const imageIndex = parseInt(soundId.replace("sound", "")) - 1;
+          tile.innerHTML = `<div class="tile-image">${
+            tileImages[currentCategory][
+              imageIndex % tileImages[currentCategory].length
+            ]
+          }</div>`;
+
+          tile.addEventListener("click", () => selectTile(tile));
+          puzzleBoard.appendChild(tile);
+          tiles.push(tile);
+        });
+      }
+
+      // Select a tile
+      function selectTile(tile) {
+        if (
+          !gameActive ||
+          tile.classList.contains("matched") ||
+          selectedTiles.includes(tile)
+        )
+          return;
+
+        // Play the sound
+        playSound(tile.dataset.sound);
+
+        // Show the tile as selected
+        tile.classList.add("selected");
+        selectedTiles.push(tile);
+
+        // If two tiles are selected, check for a match
+        if (selectedTiles.length === 2) {
+          checkForMatch();
+        }
+      }
+
+      // Check if selected tiles match
+      function checkForMatch() {
+        const [tile1, tile2] = selectedTiles;
+
+        if (tile1.dataset.sound === tile2.dataset.sound) {
+          // Match found
+          document.getElementById("match-sound").play();
+          tile1.classList.remove("selected");
+          tile2.classList.remove("selected");
+          tile1.classList.add("matched");
+          tile2.classList.add("matched");
+          matchedPairs++;
+
+          // Update progress
+          progressBar.style.width = `${(matchedPairs / totalPairs) * 100}%`;
+
+          feedbackElement.textContent = "Great job! You found a match!";
+
+          // Check if game is complete
+          if (matchedPairs === totalPairs) {
+            gameComplete();
+          }
+        } else {
+          // No match
+          document.getElementById("error-sound").play();
+          feedbackElement.textContent = "Not a match. Try again!";
+
+          // Flip tiles back after delay
+          setTimeout(() => {
+            tile1.classList.remove("selected");
+            tile2.classList.remove("selected");
+          }, 1000);
+        }
+
+        // Reset selected tiles
+        selectedTiles = [];
+      }
+
+      // Game complete
+      function gameComplete() {
+        gameActive = false;
+        document.getElementById("success-sound").play();
+        feedbackElement.textContent = "Congratulations! You won! 🎉";
+
+        // Celebration animation
+        celebrationElement.textContent = "🌟 Awesome! 🌟";
+        celebrationElement.style.opacity = "1";
+
+        // Create confetti
+        createConfetti();
+
+        setTimeout(() => {
+          celebrationElement.style.opacity = "0";
+        }, 3000);
+      }
+
+      // Play sound with volume control
+      function playSound(soundId) {
+        // Use the current category to determine which sound to play
+        let audioElement;
+
+        if (currentCategory === "animals") {
+          const animalSounds = ["animal1", "animal2", "animal3", "animal4"];
+          audioElement = document.getElementById(
+            animalSounds[parseInt(soundId.replace("sound", "")) - 1]
+          );
+        } else if (currentCategory === "instruments") {
+          const instrumentSounds = [
+            "instrument1",
+            "instrument2",
+            "instrument3",
+            "instrument4",
+          ];
+          audioElement = document.getElementById(
+            instrumentSounds[parseInt(soundId.replace("sound", "")) - 1]
+          );
+        } else {
+          const natureSounds = ["nature1", "nature2", "nature3", "nature4"];
+          audioElement = document.getElementById(
+            natureSounds[parseInt(soundId.replace("sound", "")) - 1]
+          );
+        }
+
+        audioElement.volume = volumeControl.value;
+        audioElement.currentTime = 0;
+        audioElement.play();
+      }
+
+      // Helper function to shuffle array
+      function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [array[i], array[j]] = [array[j], array[i]];
+        }
+        return array;
+      }
+
+      // Sensory functions
+      function playCalmingMusic() {
+        const calmMusic = document.getElementById("calm-music");
+        calmMusic.volume = volumeControl.value * 0.5; // Quieter than game sounds
+
+        if (calmMusic.paused) {
+          calmMusic.play();
+          feedbackElement.textContent = "Calming music started. Enjoy!";
+        } else {
+          calmMusic.pause();
+          feedbackElement.textContent = "Music paused.";
+        }
+      }
+
+      function changeBackground() {
+        const colors = ["#f0f9ff", "#f0fff4", "#fff0f5", "#f8f0ff", "#fff9f0"];
+        document.body.style.backgroundColor =
+          colors[Math.floor(Math.random() * colors.length)];
+      }
+
+      function toggleDarkMode() {
+        document.body.classList.toggle("dark-mode");
+      }
+
+      function showEncouragement() {
+        const messages = [
+          "You're doing great!",
+          "Keep trying!",
+          "You're so smart!",
+          "I believe in you!",
+          "You're a superstar!",
+          "Mistakes help us learn!",
+          "You've got this!",
+        ];
+
+        feedbackElement.textContent =
+          messages[Math.floor(Math.random() * messages.length)];
+      }
+
+      function showHelp() {
+        feedbackElement.textContent =
+          "Click tiles to hear sounds. Find two tiles with matching sounds to make a pair!";
+      }
+
+      function createConfetti() {
+        for (let i = 0; i < 50; i++) {
+          const confetti = document.createElement("div");
+          confetti.className = "confetti";
+          confetti.style.left = Math.random() * 100 + "vw";
+          confetti.style.top = -10 + "px";
+          confetti.style.backgroundColor = `hsl(${
+            Math.random() * 360
+          }, 100%, 50%)`;
+          confetti.style.width = Math.random() * 10 + 5 + "px";
+          confetti.style.height = Math.random() * 10 + 5 + "px";
+          confetti.style.borderRadius = Math.random() > 0.5 ? "50%" : "0";
+          document.body.appendChild(confetti);
+
+          const animationDuration = Math.random() * 3 + 2;
+          confetti.style.animation = `fall ${animationDuration}s linear forwards`;
+
+          setTimeout(() => {
+            confetti.remove();
+          }, animationDuration * 1000);
+        }
+      }
+
+      // Update volume for all sounds when slider changes
+      volumeControl.addEventListener("input", function () {
+        const audioElements = document.querySelectorAll("audio");
+        audioElements.forEach((audio) => {
+          audio.volume = this.value;
+        });
+
+        // Adjust calm music to be quieter than game sounds
+        const calmMusic = document.getElementById("calm-music");
+        if (!calmMusic.paused) {
+          calmMusic.volume = this.value * 0.5;
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ASD Prediction Result</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+  <script src="{{ url_for('static', filename='visualize.js') }}"></script>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <div class="container">
+    <h2>ASD Screening Result</h2>
+    <p class="verdict">Verdict: <strong>{{ verdict }}</strong></p>
+    <p class="score">Total Score: {{ score }}%</p>
+    <p class="advice"><em>{{ advice }}</em></p>
+
+    <canvas id="categoryChart" width="400" height="240"></canvas>
+
+    <a href="{{ url_for('dashboard') }}" class="btn">Go Back to Dashboard</a>
+    <button onclick="downloadPDF()" class="btn">Export to PDF</button>
+    <button onclick="downloadCSV()" class="btn">Export to CSV</button>
+  </div>
+
+  <script>
+    const responses = {{ responses | tojson | safe }};
+    const questions = {{ questions | tojson | safe }};
+    const categoryScores = {{ category_scores | tojson | safe }};
+    const verdict = "{{ verdict }}";
+    const score = "{{ score }}";
+    const username = "{{ current_user.name }}";
+    const email = "{{ current_user.email }}";
+
+    renderCategoryChart(categoryScores);
+
+    function getAnswerLabel(value) {
+        const labels = {
+            1: "Strongly Disagree",
+            2: "Disagree",
+            3: "Neutral",
+            4: "Agree",
+            5: "Strongly Agree"
+        };
+        return labels[value] || value;
+    }
+
+    function downloadPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+
+        doc.setFontSize(16);
+        doc.text("ASD Screening Report", 20, 20);
+        doc.setFontSize(11);
+        doc.text(`Name: ${username}`, 20, 30);
+        doc.text(`Email: ${email}`, 20, 36);
+        doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 42);
+        doc.text(`Verdict: ${verdict}`, 20, 50);
+        doc.text(`Score: ${score}%`, 20, 56);
+
+        const tableData = questions.map((q, i) => [
+            i + 1,
+            q,
+            getAnswerLabel(parseInt(responses[i]))
+        ]);
+
+        doc.autoTable({
+            startY: 66,
+            head: [['No.', 'Question', 'Answer']],
+            body: tableData,
+            styles: { fontSize: 9 },
+            headStyles: { fillColor: [33, 150, 243] },
+            theme: 'grid'
+        });
+
+        doc.addPage();
+        doc.text("Category Scores", 20, 20);
+        let y = 30;
+        for (let [key, val] of Object.entries(categoryScores)) {
+            doc.text(`${key}: ${val}%`, 20, y);
+            y += 8;
+        }
+
+        const chart = document.getElementById("categoryChart");
+        const imgData = chart.toDataURL("image/png", 1.0);
+        doc.addImage(imgData, "PNG", 20, y + 10, 160, 90);
+
+        doc.save("ASD_Screening_Result.pdf");
+    }
+
+    function downloadCSV() {
+        let csv = "No.,Question,Answer\n";
+        questions.forEach((q, i) => {
+            const answerText = getAnswerLabel(parseInt(responses[i]));
+            csv += `${i + 1},"${q}","${answerText}"\n`;
+        });
+
+        csv += `\nName,${username}\nEmail,${email}\nVerdict,${verdict}\nScore,${score}%\nDate,${new Date().toLocaleDateString()}`;
+
+        for (let [key, val] of Object.entries(categoryScores)) {
+            csv += `\n${key},${val}%`;
+        }
+
+        const blob = new Blob([csv], { type: "text/csv" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "ASD_Screening_Result.csv";
+        a.click();
+    }
+  </script>
+</body>
+</html>

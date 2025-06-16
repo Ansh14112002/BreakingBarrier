@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Adventure Quiz for Super Thinkers</title>
+    <style>
+      body {
+        font-family: "Comic Sans MS", cursive, sans-serif;
+        background-color: #f0f9ff;
+        color: #333;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        text-align: center;
+      }
+
+      h1 {
+        color: #5e60ce;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        font-size: 2.2em;
+      }
+
+      .quiz-container {
+        background-color: white;
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.08);
+        margin-bottom: 25px;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .question {
+        font-size: 22px;
+        margin-bottom: 20px;
+        color: #4a4e69;
+        font-weight: bold;
+      }
+
+      .options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        margin-bottom: 25px;
+      }
+
+      .option {
+        background-color: #80ffdb;
+        border: 3px solid #64dfdf;
+        border-radius: 15px;
+        padding: 12px;
+        font-size: 18px;
+        cursor: pointer;
+        transition: all 0.3s;
+        min-height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .option:hover {
+        background-color: #64dfdf;
+        transform: translateY(-3px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .option:active {
+        transform: translateY(0);
+      }
+
+      .feedback {
+        font-size: 26px;
+        font-weight: bold;
+        height: 40px;
+        margin: 20px 0;
+        transition: all 0.5s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .correct {
+        color: #38b000;
+        animation: pulse 0.5s;
+      }
+
+      .incorrect {
+        color: #ef476f;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.1);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      .progress-container {
+        width: 100%;
+        background-color: #e0e0e0;
+        border-radius: 10px;
+        margin: 25px 0;
+        height: 25px;
+        position: relative;
+      }
+
+      .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #4cc9f0, #4361ee);
+        border-radius: 10px;
+        width: 0%;
+        transition: width 0.5s;
+      }
+
+      .progress-text {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        color: white;
+        font-weight: bold;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+      }
+
+      .result {
+        font-size: 28px;
+        margin: 25px 0;
+        display: none;
+        padding: 20px;
+        border-radius: 15px;
+        background-color: #f8f9fa;
+      }
+
+      .celebration {
+        font-size: 50px;
+        animation: bounce 1s infinite alternate;
+        display: none;
+        margin: 20px 0;
+      }
+
+      @keyframes bounce {
+        from {
+          transform: translateY(0);
+        }
+        to {
+          transform: translateY(-20px);
+        }
+      }
+
+      .sensory-panel {
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .sensory-item {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+      }
+
+      .sensory-item:hover {
+        transform: rotate(15deg) scale(1.1);
+      }
+
+      .restart-btn {
+        background: linear-gradient(135deg, #7209b7, #4361ee);
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 15px 30px;
+        font-size: 20px;
+        cursor: pointer;
+        margin-top: 20px;
+        display: none;
+        transition: all 0.3s;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+
+      .restart-btn:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
+      }
+
+      .hint-btn {
+        background-color: #ffd166;
+        color: #333;
+        border: none;
+        border-radius: 50px;
+        padding: 8px 16px;
+        font-size: 16px;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: all 0.3s;
+      }
+
+      .hint-btn:hover {
+        background-color: #ffb347;
+      }
+
+      .hint-text {
+        display: none;
+        margin-top: 10px;
+        padding: 10px;
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        font-style: italic;
+      }
+
+      .emoji-feedback {
+        font-size: 30px;
+        margin-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧠 Thinking Adventure Quiz 🚀</h1>
+
+    <div class="sensory-panel">
+      <div
+        class="sensory-item"
+        style="background-color: #ffadad"
+        onclick="playSound('pop')"
+      >
+        🎵
+      </div>
+      <div
+        class="sensory-item"
+        style="background-color: #ffd6a5"
+        onclick="changeBackground()"
+      >
+        🎨
+      </div>
+      <div
+        class="sensory-item"
+        style="background-color: #fdffb6"
+        onclick="toggleConfetti()"
+      >
+        🎊
+      </div>
+      <div
+        class="sensory-item"
+        style="background-color: #caffbf"
+        onclick="bounceQuestion()"
+      >
+        🔼
+      </div>
+    </div>
+
+    <div class="quiz-container">
+      <div class="progress-container">
+        <div class="progress-bar" id="progress"></div>
+        <div class="progress-text" id="progress-text">1/10</div>
+      </div>
+
+      <div class="question" id="question"></div>
+
+      <div class="options" id="options"></div>
+
+      <button class="hint-btn" id="hint-btn" onclick="showHint()">
+        Need a Hint?
+      </button>
+      <div class="hint-text" id="hint-text"></div>
+
+      <div class="feedback" id="feedback"></div>
+    </div>
+
+    <div class="result" id="result"></div>
+    <div class="celebration" id="celebration"></div>
+
+    <button class="restart-btn" id="restart" onclick="restartQuiz()">
+      Play Again!
+    </button>
+
+    <audio
+      id="correct-sound"
+      src="{{ url_for('static', filename='sounds/correct.mp3') }}"
+    ></audio>
+    <audio
+      id="wrong-sound"
+      src="{{ url_for('static', filename='sounds/wrong.mp3') }}"
+    ></audio>
+    <audio
+      id="pop-sound"
+      src="{{ url_for('static', filename='sounds/pop.mp3') }}"
+    ></audio>
+
+    <script>
+      // Quiz questions with hints
+      const quiz = [
+        {
+          question: "What comes next in this pattern: 2, 4, 6, ___?",
+          options: ["7", "8", "5", "10"],
+          answer: "8",
+          hint: "Count by twos!",
+        },
+        {
+          question: "Which of these is NOT a planet in our solar system?",
+          options: ["Mars", "Venus", "Pluto", "Jupiter"],
+          answer: "Pluto",
+          hint: "Scientists decided this one is now a dwarf planet",
+        },
+        {
+          question: "If you mix red and blue, what color do you get?",
+          options: ["Green", "Orange", "Purple", "Yellow"],
+          answer: "Purple",
+          hint: "Think about the colors in a rainbow between red and blue",
+        },
+        {
+          question: "Which month comes right after June?",
+          options: ["May", "July", "August", "September"],
+          answer: "July",
+          hint: "The summer month that starts with 'J'",
+        },
+        {
+          question: "What is the opposite of 'happy'?",
+          options: ["Excited", "Sad", "Angry", "Tired"],
+          answer: "Sad",
+          hint: "How you might feel when something bad happens",
+        },
+        {
+          question: "Which of these animals is a mammal?",
+          options: ["Eagle", "Shark", "Frog", "Dolphin"],
+          answer: "Dolphin",
+          hint: "Which one breathes air and feeds its babies milk?",
+        },
+        {
+          question: "What is 15 - 8?",
+          options: ["5", "6", "7", "8"],
+          answer: "7",
+          hint: "Count backwards from 15 eight times",
+        },
+        {
+          question: "Which of these is a liquid at room temperature?",
+          options: ["Rock", "Water", "Wood", "Metal"],
+          answer: "Water",
+          hint: "What do you drink when you're thirsty?",
+        },
+        {
+          question: "How many sides does a triangle have?",
+          options: ["2", "3", "4", "5"],
+          answer: "3",
+          hint: "The prefix 'tri-' means three",
+        },
+        {
+          question: "What do plants need to grow?",
+          options: ["Sunlight", "Water", "Soil", "All of these"],
+          answer: "All of these",
+          hint: "Plants need several things to be healthy",
+        },
+      ];
+
+      // Quiz variables
+      let currentQuestion = 0;
+      let score = 0;
+      const totalQuestions = quiz.length;
+      let confettiActive = false;
+
+      // DOM elements
+      const questionElement = document.getElementById("question");
+      const optionsElement = document.getElementById("options");
+      const feedbackElement = document.getElementById("feedback");
+      const progressElement = document.getElementById("progress");
+      const progressTextElement = document.getElementById("progress-text");
+      const resultElement = document.getElementById("result");
+      const celebrationElement = document.getElementById("celebration");
+      const restartButton = document.getElementById("restart");
+      const hintButton = document.getElementById("hint-btn");
+      const hintTextElement = document.getElementById("hint-text");
+
+      // Audio elements
+      const correctSound = document.getElementById("correct-sound");
+      const wrongSound = document.getElementById("wrong-sound");
+      const popSound = document.getElementById("pop-sound");
+
+      // Initialize quiz
+      function loadQuestion() {
+        const q = quiz[currentQuestion];
+        questionElement.textContent = q.question;
+
+        optionsElement.innerHTML = "";
+        q.options.forEach((option) => {
+          const button = document.createElement("button");
+          button.textContent = option;
+          button.className = "option";
+          button.onclick = () => checkAnswer(option);
+          optionsElement.appendChild(button);
+        });
+
+        // Update progress
+        progressElement.style.width = `${
+          (currentQuestion / totalQuestions) * 100
+        }%`;
+        progressTextElement.textContent = `${
+          currentQuestion + 1
+        }/${totalQuestions}`;
+
+        // Reset hint
+        hintTextElement.style.display = "none";
+        hintTextElement.textContent =
+          q.hint || "No hint available for this question.";
+      }
+
+      // Check answer
+      function checkAnswer(selectedOption) {
+        const correctAnswer = quiz[currentQuestion].answer;
+
+        // Disable all options after answering
+        const optionButtons = document.querySelectorAll(".option");
+        optionButtons.forEach((button) => {
+          button.disabled = true;
+        });
+
+        // Disable hint button
+        hintButton.disabled = true;
+
+        if (selectedOption === correctAnswer) {
+          feedbackElement.innerHTML =
+            "Correct! <span class='emoji-feedback'>🎉</span>";
+          feedbackElement.className = "feedback correct";
+          correctSound.play();
+          score++;
+        } else {
+          feedbackElement.innerHTML = `Almost! The answer is ${correctAnswer}. <span class='emoji-feedback'>🤔</span>`;
+          feedbackElement.className = "feedback incorrect";
+          wrongSound.play();
+        }
+
+        // Move to next question after delay
+        setTimeout(() => {
+          currentQuestion++;
+          if (currentQuestion < totalQuestions) {
+            loadQuestion();
+            feedbackElement.textContent = "";
+            feedbackElement.className = "feedback";
+            hintButton.disabled = false;
+          } else {
+            showResult();
+          }
+        }, 2000);
+      }
+
+      // Show hint
+      function showHint() {
+        hintTextElement.style.display =
+          hintTextElement.style.display === "block" ? "none" : "block";
+      }
+
+      // Show final result
+      function showResult() {
+        questionElement.textContent = "";
+        optionsElement.innerHTML = "";
+        feedbackElement.textContent = "";
+        hintButton.style.display = "none";
+        hintTextElement.style.display = "none";
+
+        const percentage = Math.round((score / totalQuestions) * 100);
+        resultElement.textContent = `Quiz Complete! You got ${score} out of ${totalQuestions} correct! (${percentage}%)`;
+        resultElement.style.display = "block";
+
+        celebrationElement.style.display = "block";
+        if (percentage >= 80) {
+          celebrationElement.textContent = "🌟 Super Star Thinker! 🌟";
+          celebrationElement.style.color = "#38b000";
+        } else if (percentage >= 50) {
+          celebrationElement.textContent = "👍 Great Problem Solver! 👍";
+          celebrationElement.style.color = "#4361ee";
+        } else {
+          celebrationElement.textContent = "😊 Keep Practicing! 😊";
+          celebrationElement.style.color = "#ffd166";
+        }
+
+        if (confettiActive) {
+          createConfetti();
+        }
+
+        restartButton.style.display = "inline-block";
+        progressElement.style.width = "100%";
+      }
+
+      // Restart quiz
+      function restartQuiz() {
+        currentQuestion = 0;
+        score = 0;
+        resultElement.style.display = "none";
+        celebrationElement.style.display = "none";
+        restartButton.style.display = "none";
+        hintButton.style.display = "block";
+        hintButton.disabled = false;
+        loadQuestion();
+      }
+
+      // Sensory functions
+      function playSound(type) {
+        if (type === "pop") popSound.play();
+      }
+
+      function changeBackground() {
+        const colors = ["#f0f9ff", "#f0fff4", "#fff0f5", "#f8f0ff"];
+        document.body.style.backgroundColor =
+          colors[Math.floor(Math.random() * colors.length)];
+      }
+
+      function toggleConfetti() {
+        confettiActive = !confettiActive;
+        if (confettiActive && currentQuestion === totalQuestions) {
+          createConfetti();
+        }
+      }
+
+      function bounceQuestion() {
+        questionElement.style.animation = "bounce 0.5s";
+        setTimeout(() => {
+          questionElement.style.animation = "";
+        }, 500);
+      }
+
+      function createConfetti() {
+        // Simple confetti effect
+        const container = document.querySelector(".quiz-container");
+        for (let i = 0; i < 50; i++) {
+          const confetti = document.createElement("div");
+          confetti.innerHTML = ["🎉", "🎊", "🌟", "🌈", "✨"][
+            Math.floor(Math.random() * 5)
+          ];
+          confetti.style.position = "absolute";
+          confetti.style.left = Math.random() * 100 + "%";
+          confetti.style.top = -50 + "px";
+          confetti.style.fontSize = Math.random() * 20 + 10 + "px";
+          confetti.style.animation = `fall ${
+            Math.random() * 3 + 2
+          }s linear forwards`;
+          container.appendChild(confetti);
+
+          // Remove after animation
+          setTimeout(() => {
+            confetti.remove();
+          }, 5000);
+        }
+
+        // Add CSS for falling animation
+        const style = document.createElement("style");
+        style.innerHTML = `
+                @keyframes fall {
+                    to {
+                        transform: translateY(calc(100vh + 50px)) rotate(360deg);
+                    }
+                }
+            `;
+        document.head.appendChild(style);
+      }
+
+      // Start the quiz
+      loadQuestion();
+    </script>
+  </body>
+</html>

@@ -1,0 +1,111 @@
+<!-- templates/predict.html -->
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ASD Questionnaire</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <style>
+      body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        background: linear-gradient(120deg, #e0eafc 0%, #cfdef3 100%);
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+      }
+      h2 {
+        text-align: center;
+        color: #2c3e50;
+        margin-top: 40px;
+        letter-spacing: 1px;
+        font-size: 2.2rem;
+        font-weight: 700;
+        text-shadow: 0 2px 8px rgba(44,62,80,0.08);
+      }
+      form {
+        background: #fff;
+        max-width: 520px;
+        margin: 48px auto 0 auto;
+        padding: 38px 48px 28px 48px;
+        border-radius: 18px;
+        box-shadow: 0 8px 32px rgba(44,62,80,0.13);
+        border: 1px solid #e3eaf1;
+        transition: box-shadow 0.2s;
+      }
+      form:hover {
+        box-shadow: 0 12px 40px rgba(44,62,80,0.18);
+      }
+      label {
+        display: block;
+        margin-top: 22px;
+        margin-bottom: 8px;
+        color: #34495e;
+        font-weight: 600;
+        font-size: 1.08rem;
+        letter-spacing: 0.2px;
+      }
+      select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 7px;
+        border: 1.5px solid #bfc9d1;
+        margin-bottom: 6px;
+        font-size: 1rem;
+        background: #f7fafd;
+        transition: border 0.2s;
+      }
+      select:focus {
+        border: 1.5px solid #007bff;
+        outline: none;
+        background: #f0f7ff;
+      }
+      button[type="submit"] {
+        width: 100%;
+        background: linear-gradient(90deg, #007bff 0%, #00c6ff 100%);
+        color: #fff;
+        border: none;
+        padding: 14px;
+        border-radius: 7px;
+        font-size: 1.1rem;
+        font-weight: bold;
+        cursor: pointer;
+        margin-top: 28px;
+        box-shadow: 0 2px 8px rgba(0,123,255,0.08);
+        transition: background 0.2s, box-shadow 0.2s;
+        letter-spacing: 0.5px;
+      }
+      button[type="submit"]:hover {
+        background: linear-gradient(90deg, #0056b3 0%, #0096c7 100%);
+        box-shadow: 0 4px 16px rgba(0,123,255,0.13);
+      }
+      @media (max-width: 600px) {
+        form {
+          padding: 22px 8vw 18px 8vw;
+          max-width: 98vw;
+        }
+        h2 {
+          font-size: 1.3rem;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <h2>ASD Screening Questionnaire</h2>
+    <form action="/predict" method="POST">
+      {% for question in questions %}
+      <label for="q{{ loop.index }}">{{ question }}</label>
+      <select name="q{{ loop.index }}" required>
+        <option value="1">Strongly Disagree</option>
+        <option value="2">Disagree</option>
+        <option value="3">Neutral</option>
+        <option value="4">Agree</option>
+        <option value="5">Strongly Agree</option>
+      </select>
+      {% endfor %}
+
+      <button type="submit">Submit</button>
+    </form>
+  </body>
+</html>

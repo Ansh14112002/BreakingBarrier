@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fun Quiz for Friends</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #f0f8ff;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #ff6b6b;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .quiz-container {
+            background-color: white;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .question {
+            font-size: 20px;
+            margin-bottom: 15px;
+            color: #5f6caf;
+        }
+        
+        .options {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .option {
+            background-color: #ffd166;
+            border: none;
+            border-radius: 50px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            min-width: 120px;
+        }
+        
+        .option:hover {
+            background-color: #ffb347;
+            transform: scale(1.05);
+        }
+        
+        .option:active {
+            transform: scale(0.95);
+        }
+        
+        .feedback {
+            font-size: 24px;
+            font-weight: bold;
+            height: 30px;
+            margin: 15px 0;
+            transition: all 0.5s;
+        }
+        
+        .correct {
+            color: #06d6a0;
+        }
+        
+        .incorrect {
+            color: #ef476f;
+        }
+        
+        .progress-container {
+            width: 100%;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            height: 20px;
+            background-color: #4cc9f0;
+            border-radius: 10px;
+            width: 0%;
+            transition: width 0.5s;
+        }
+        
+        .result {
+            font-size: 24px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .celebration {
+            font-size: 40px;
+            animation: bounce 1s infinite alternate;
+            display: none;
+        }
+        
+        @keyframes bounce {
+            from { transform: translateY(0); }
+            to { transform: translateY(-20px); }
+        }
+        
+        .sensory-element {
+            width: 100px;
+            height: 100px;
+            background-color: #b8e0d2;
+            border-radius: 50%;
+            margin: 20px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .sensory-element:hover {
+            transform: rotate(360deg);
+            background-color: #95b8d1;
+        }
+        
+        .restart-btn {
+            background-color: #8338ec;
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 25px;
+            font-size: 18px;
+            cursor: pointer;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .restart-btn:hover {
+            background-color: #5e2ca5;
+        }
+    </style>
+</head>
+<body>
+    <h1>🌟 Fun Quiz Time! 🌟</h1>
+    
+    <div class="sensory-element" onclick="this.style.backgroundColor=getRandomColor()">
+        Tap me!
+    </div>
+    
+    <div class="quiz-container">
+        <div class="progress-container">
+            <div class="progress-bar" id="progress"></div>
+        </div>
+        
+        <div class="question" id="question"></div>
+        
+        <div class="options" id="options"></div>
+        
+        <div class="feedback" id="feedback"></div>
+    </div>
+    
+    <div class="result" id="result"></div>
+    <div class="celebration" id="celebration"></div>
+    
+    <button class="restart-btn" id="restart" onclick="restartQuiz()">Play Again!</button>
+    
+    <script>
+        // Quiz questions
+        const quiz = [
+            {
+                question: "What color is a banana?",
+                options: ["Red", "Yellow", "Blue", "Green"],
+                answer: "Yellow"
+            },
+            {
+                question: "Which animal says 'meow'?",
+                options: ["Dog", "Cow", "Cat", "Lion"],
+                answer: "Cat"
+            },
+            {
+                question: "How many legs does a chair usually have?",
+                options: ["2", "3", "4", "5"],
+                answer: "4"
+            },
+            {
+                question: "What do we use to see?",
+                options: ["Ears", "Eyes", "Nose", "Mouth"],
+                answer: "Eyes"
+            },
+            {
+                question: "Which one is a fruit?",
+                options: ["Carrot", "Apple", "Potato", "Onion"],
+                answer: "Apple"
+            },
+            {
+                question: "What do we use to write?",
+                options: ["Spoon", "Pencil", "Fork", "Knife"],
+                answer: "Pencil"
+            },
+            {
+                question: "What comes after the number 5?",
+                options: ["4", "6", "7", "8"],
+                answer: "6"
+            },
+            {
+                question: "Which one is sweet?",
+                options: ["Lemon", "Salt", "Ice cream", "Vinegar"],
+                answer: "Ice cream"
+            },
+            {
+                question: "What do we wear on our feet?",
+                options: ["Hat", "Gloves", "Shoes", "Scarf"],
+                answer: "Shoes"
+            },
+            {
+                question: "What color is the sky on a sunny day?",
+                options: ["Green", "Black", "Blue", "Red"],
+                answer: "Blue"
+            }
+        ];
+        
+        // Quiz variables
+        let currentQuestion = 0;
+        let score = 0;
+        const totalQuestions = quiz.length;
+        
+        // DOM elements
+        const questionElement = document.getElementById('question');
+        const optionsElement = document.getElementById('options');
+        const feedbackElement = document.getElementById('feedback');
+        const progressElement = document.getElementById('progress');
+        const resultElement = document.getElementById('result');
+        const celebrationElement = document.getElementById('celebration');
+        const restartButton = document.getElementById('restart');
+        
+        // Initialize quiz
+        function loadQuestion() {
+            const q = quiz[currentQuestion];
+            questionElement.textContent = q.question;
+            
+            optionsElement.innerHTML = '';
+            q.options.forEach(option => {
+                const button = document.createElement('button');
+                button.textContent = option;
+                button.className = 'option';
+                button.onclick = () => checkAnswer(option);
+                optionsElement.appendChild(button);
+            });
+            
+            // Update progress
+            progressElement.style.width = `${(currentQuestion / totalQuestions) * 100}%`;
+        }
+        
+        // Check answer
+        function checkAnswer(selectedOption) {
+            const correctAnswer = quiz[currentQuestion].answer;
+            
+            if (selectedOption === correctAnswer) {
+                feedbackElement.textContent = "Great job! 👍";
+                feedbackElement.className = "feedback correct";
+                score++;
+            } else {
+                feedbackElement.textContent = `Good try! The answer is ${correctAnswer}.`;
+                feedbackElement.className = "feedback incorrect";
+            }
+            
+            // Disable all options after answering
+            const optionButtons = document.querySelectorAll('.option');
+            optionButtons.forEach(button => {
+                button.disabled = true;
+            });
+            
+            // Move to next question after delay
+            setTimeout(() => {
+                currentQuestion++;
+                if (currentQuestion < totalQuestions) {
+                    loadQuestion();
+                    feedbackElement.textContent = '';
+                } else {
+                    showResult();
+                }
+            }, 1500);
+        }
+        
+        // Show final result
+        function showResult() {
+            questionElement.textContent = '';
+            optionsElement.innerHTML = '';
+            feedbackElement.textContent = '';
+            
+            const percentage = Math.round((score / totalQuestions) * 100);
+            resultElement.textContent = `You got ${score} out of ${totalQuestions} correct! (${percentage}%)`;
+            resultElement.style.display = 'block';
+            
+            celebrationElement.style.display = 'block';
+            if (percentage >= 80) {
+                celebrationElement.textContent = '🎉🌈 Awesome Job! 🌈🎉';
+                celebrationElement.style.color = '#06d6a0';
+            } else if (percentage >= 50) {
+                celebrationElement.textContent = '👍 Good Work! 👍';
+                celebrationElement.style.color = '#4cc9f0';
+            } else {
+                celebrationElement.textContent = '😊 Nice Try! 😊';
+                celebrationElement.style.color = '#ffd166';
+            }
+            
+            restartButton.style.display = 'inline-block';
+            progressElement.style.width = '100%';
+        }
+        
+        // Restart quiz
+        function restartQuiz() {
+            currentQuestion = 0;
+            score = 0;
+            resultElement.style.display = 'none';
+            celebrationElement.style.display = 'none';
+            restartButton.style.display = 'none';
+            loadQuestion();
+        }
+        
+        // Helper function for sensory element
+        function getRandomColor() {
+            const colors = ['#ffadad', '#ffd6a5', '#fdffb6', '#caffbf', '#9bf6ff', '#a0c4ff', '#bdb2ff', '#ffc6ff'];
+            return colors[Math.floor(Math.random() * colors.length)];
+        }
+        
+        // Start the quiz
+        loadQuestion();
+    </script>
+</body>
+</html>

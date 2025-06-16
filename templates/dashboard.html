@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Autism ERP Dashboard</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+    <script
+      src="https://kit.fontawesome.com/a076d05399.js"
+      crossorigin="anonymous"
+    ></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <!-- Header -->
+    <header>
+      <div class="logo"><h1>Breaking Barrier</h1></div>
+      <nav>
+        <ul>
+          <li><a href="{{ url_for('dashboard') }}">Home</a></li>
+          <li><a href="#about">About Us</a></li>
+          <li><a href="#services">Services</a></li>
+          <li><a href="#program">Program</a></li>
+          <li><a href="#testimonials">Testimonials</a></li>
+          <li><a href="{{ url_for('predict') }}">ASD Test</a></li>
+          <li><a href="{{ url_for('logout') }}">Logout</a></li>
+        </ul>
+      </nav>
+    </header>
+
+    <!-- Home Section -->
+    <section id="home" class="home-section">
+      <div class="slogan">
+        <h2>Empowering Children with Autism</h2>
+        <p>Building a brighter future together</p>
+        <button class="cta-btn">Join Us</button>
+      </div>
+      <div class="home-image">
+        <img src="{{ url_for('static', filename='images/image4.jpg') }}" alt="Child Image" />
+      </div>
+    </section>
+
+    <!-- Dashboard Summary -->
+    <div class="dashboard-content">
+      <h2>Welcome, {{ name }}!</h2>
+      <p>This is your personalized dashboard.</p>
+      <a class="btn" href="{{ url_for('predict') }}">Take ASD Test</a>
+
+      {% if score %}
+      <div class="result-card">
+        <h3>🧠 Latest ASD Screening Summary</h3>
+        <p>Verdict: <strong>{{ verdict }}</strong></p>
+        <p>Score: <strong>{{ score }}%</strong></p>
+
+        {% if advice %}
+        <p style="margin-top: 10px; font-style: italic; color: #555">
+          Recommendation: {{ advice }}
+        </p>
+        {% endif %}
+        {% if timestamp %}
+        <p><em>Last Test:</em> {{ timestamp }}</p>
+        {% endif %}
+
+        <div class="progress-bar-container">
+          <div
+            class="progress-bar {% if score < 40 %}low {% elif score < 70 %}moderate {% else %}high {% endif %}"
+            style="width: 0%"
+            id="progressBar"
+          >
+            {{ score }}%
+          </div>
+        </div>
+      </div>
+
+      {% if category_scores %}
+      <div class="result-card">
+        <h4>Category-wise Breakdown</h4>
+        <canvas id="categoryMiniChart" height="220"></canvas>
+      </div>
+
+      <script>
+        window.onload = function () {
+          document.getElementById("progressBar").style.width = "{{ score }}%";
+
+          const ctx = document.getElementById("categoryMiniChart");
+          const data = {
+            labels: {{ category_scores.keys()|list|tojson }},
+            datasets: [{
+              label: "Category Scores (%)",
+              data: {{ category_scores.values()|list|tojson }},
+              backgroundColor: ["#4caf50", "#2196f3", "#ffca28", "#f44336"],
+              borderRadius: 8
+            }]
+          };
+
+          new Chart(ctx, {
+            type: "bar",
+            data: data,
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+                title: {
+                  display: true,
+                  text: "Your Category-Wise Analysis",
+                  font: { size: 18 }
+                }
+              },
+              scales: {
+                y: { beginAtZero: true, max: 100 }
+              }
+            }
+          });
+        };
+      </script>
+      {% else %}
+      <script>
+        window.onload = function () {
+          document.getElementById("progressBar").style.width = "{{ score }}%";
+        };
+      </script>
+      {% endif %}
+      {% endif %}
+    </div>
+    <!-- About Us Section -->
+    <section id="about">
+      <div class="container">
+        <h2>About Us</h2>
+        <p class="about-desc">
+          We provide comprehensive services designed to enhance the learning
+          experiences and overall well-being of children with autism.
+        </p>
+        <div class="about-cards">
+          <div class="about-card">
+            <i class="fas fa-chalkboard-teacher"></i>
+            <h3>Special Training</h3>
+            <p>
+              Tailored programs that cater to the unique needs of children with
+              autism, fostering growth and independence.
+            </p>
+          </div>
+          <div class="about-card">
+            <i class="fas fa-book-open"></i>
+            <h3>Study Materials & Videos</h3>
+            <p>
+              Educational content, including study materials and specialized
+              videos, for effective learning at every level.
+            </p>
+          </div>
+          <div class="about-card">
+            <i class="fas fa-chart-line"></i>
+            <h3>Progress Tracking</h3>
+            <p>
+              Tools for tracking progress through interactive tests and quizzes,
+              ensuring continuous improvement.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services">
+      <h2>Our Services</h2>
+      <div class="services-grid">
+        <div class="service-card">
+          <h3>Study Material</h3>
+          <p>
+            Comprehensive study materials for classes KG to 8 tailored for
+            autistic children.
+          </p>
+          <button onclick="showModal('study-modal')">Explore Materials</button>
+        </div>
+        <div class="service-card">
+          <h3>Educational Videos</h3>
+          <p>Engaging and specialized videos for autism care and learning.</p>
+          <button onclick="showModal('video-modal')">Watch Videos</button>
+        </div>
+        <div class="service-card">
+          <h3>Games & Quizzes</h3>
+          <p>Interactive quizzes and games to monitor progress and growth.</p>
+          <button onclick="showModal('game-modal')">Take a Test</button>
+        </div>
+      </div>
+
+      <!-- Study Material Modal -->
+      <div id="study-modal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeModal('study-modal')">&times;</span>
+          <h3>Download Study Materials</h3>
+          <ul>
+            {% for i in range(1, 9) %}
+            <li>
+              <a href="/static/study/class{{ i }}.pdf" download
+                >Class {{ i }} - Study Material</a
+              >
+            </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+
+      <!-- Video Modal -->
+      <div id="video-modal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeModal('video-modal')">&times;</span>
+          <h3>Recommended Videos</h3>
+          <ul>
+            <li>
+              <a
+                href="https://www.youtube.com/watch?v=fN8pfd9Tsqs"
+                target="_blank"
+                >Emotional Recognition</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://www.youtube.com/watch?v=W-zrqWUJ7hQ"
+                target="_blank"
+                >Learning for Kids</a
+              >
+            </li>
+            <li>
+              <a
+                href="https://www.youtube.com/watch?v=1n6i5h2DkGQ"
+                target="_blank"
+                >Speech Development</a
+              >
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Game Modal -->
+      <div id="game-modal" class="modal">
+        <div class="modal-content">
+          <span class="close" onclick="closeModal('game-modal')">&times;</span>
+          <h3>Games & Quizzes</h3>
+          <ul>
+            <li>
+              <a
+                href="{{ url_for('load_quiz', quiz_name='quiz1') }}"
+                target="_blank"
+              >
+                <strong>Quiz 1:</strong> Easy Level
+              </a>
+            </li>
+            <li>
+              <a
+                href="{{ url_for('load_quiz', quiz_name='quiz2') }}"
+                target="_blank"
+              >
+                <strong>Quiz 2:</strong> Intermediate Level
+              </a>
+            </li>
+            <li>
+              <a
+                href="{{ url_for('load_quiz', quiz_name='quiz3') }}"
+                target="_blank"
+              >
+                <strong>Quiz 3:</strong> Advanced Level
+              </a>
+            </li>
+            <li>
+              <a
+                href="{{ url_for('load_game', game_name='game1') }}"
+                target="_blank"
+              >
+                <strong>Sound Puzzle:</strong> Listen and Match Sounds
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Program Section -->
+    <section id="program">
+      <h2>Our Programs</h2>
+      <div class="program-grid">
+        <div class="program-card">
+          <h3>Upload Documents</h3>
+          <p>
+            Upload essential documents for children enrolled in our programs.
+          </p>
+          <button class="upload-btn">Upload</button>
+        </div>
+        <div class="program-card">
+          <h3>School List</h3>
+          <p>
+            Access a comprehensive list of schools specializing in autistic
+            children education.
+          </p>
+          <button class="school-btn" onclick="showList('school')">
+            View Schools
+          </button>
+        </div>
+        <div class="program-card">
+          <h3>Doctor List for Autism</h3>
+          <p>
+            We provide the list of doctors and organizations for better
+            treatment.
+          </p>
+          <button class="doctor-btn" onclick="showList('doctor')">
+            View List
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Modal for Schools and Doctors -->
+    <div id="list-modal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal('list-modal')">&times;</span>
+        <h3 id="list-title">List</h3>
+        <ul id="list-content">
+          <!-- Dynamic content will be injected here -->
+        </ul>
+      </div>
+    </div>
+
+    <!-- Testimonials Section -->
+    <section id="testimonials">
+      <h2>What People Say</h2>
+      <div class="testimonial-slider">
+        <!-- Testimonials will be loaded dynamically -->
+      </div>
+    </section>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+  </body>
+</html>
